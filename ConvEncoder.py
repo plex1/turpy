@@ -1,3 +1,9 @@
+#! /usr/bin/env python
+# title           : ConvEncoder.py
+# description     : This class implements a convolutional encoder. Its input is a trellis instance.
+# author          : Felix Arnold
+# python_version  : 3.5.2
+
 import numpy as np
 
 
@@ -19,9 +25,19 @@ class ConvEncoder(object):
     def get_state(self):
         return self.state
 
-    def encode(self, data):
-        # add K-1 zero termination
-        data = np.concatenate((data, np.array([0] * (self.trellis.K - 1))))
+    def zero_padding(self, data, k=-1):
+        # add K-1 zero termination bits
+        # return np.concatenate((data, np.array([0] * (self.trellis.K - 1))))
+        if k == -1:
+            k = self.trellis.K - 1
+        return data + [0] * k
+
+    def encode(self, data, zero_termination=True):
+
+        self.reset()
+
+        if zero_termination:
+            data = self.zero_padding(data)
 
         # encoding
         encoded = np.array([])
@@ -29,3 +45,54 @@ class ConvEncoder(object):
             encoded = np.concatenate((encoded.astype(int), self.step(data[i])))
 
         return encoded
+
+
+class TurboEncoder(object):
+
+    def __init__(self, trellises, interleaver):
+        self.state = 0
+        self.trellises = trellises
+        self.interleaver = interleaver
+        self.r = 3
+
+    def encode(self, data, K=0):
+
+        self.cvet = ConvEncoder(self.trellises[1])  # trellis with maximum K
+
+        encoded = []
+        for index, trellis in enumerate(self.trellises):
+            self.cve = ConvEncoder(trellis)
+            self.cve.reset()
+            datam = data
+            if index > 1:
+                datam = self.interleaver.interleave(datam)
+            datam = self.cvet.zero_padding(datam, K)
+            encoded_conv = self.cve.encode(datam, False)
+            encoded.append(encoded_conv)
+        return encoded
+
+    def extract(self, enc_stream):
+        enc_extracted = []
+        for i in range(self.r):
+            enc_extracted.append(enc_stream[i::(self.r)])
+        return enc_extracted
+
+    def flatten(self, enc_extracted):
+        enc_stream = []
+        for i in range(len(enc_extracted[0])):
+            for j in range(self.r):
+                enc_stream.append(enc_extracted[j][i])
+
+        # z = zip(enc_stream)
+        # list(x for sublist in z for x in sublist)
+        return enc_stream
+
+    def flatten_parity(self, enc_extracted):
+        enc_stream = []
+        for i in range(len(enc_extracted[0])):
+            for j in range(self.r):
+                enc_stream.append(enc_extracted[j + 1][i])
+
+        # z = zip(enc_stream)
+        # list(x for sublist in z for x in sublist)
+        return enc_stream
