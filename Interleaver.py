@@ -34,14 +34,13 @@ class Interleaver(object):
         # possible values for N = power of two
         self.perm = list(range(N))
         k = int((math.log2(N) + 1) / 2)
-        self.perm = [(2 ** k - 1 * x + 2 ** (k + 1) * x ** 2) % N for x in self.perm]
+        self.perm = [((2 ** k - 1) * x + 2 ** (k + 1) * x ** 2) % N for x in self.perm]
         self._gen_perm_inv()
 
     def _gen_perm_inv(self):
         self.perm_inv = [0] * len(self.perm)
         for i in range(len(self.perm)):
             self.perm_inv[self.perm[i]] = i
-
     def interleave(self, data):
         return [data[index] for index in self.perm]
 

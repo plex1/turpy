@@ -26,8 +26,7 @@ class ConvEncoder(object):
         return self.state
 
     def zero_padding(self, data, k=-1):
-        # add K-1 zero termination bits
-        # return np.concatenate((data, np.array([0] * (self.trellis.K - 1))))
+        # add k-1 zero termination bits
         if k == -1:
             k = self.trellis.K - 1
         return data + [0] * k
@@ -74,7 +73,7 @@ class TurboEncoder(object):
     def extract(self, enc_stream):
         enc_extracted = []
         for i in range(self.r):
-            enc_extracted.append(enc_stream[i::(self.r)])
+            enc_extracted.append(enc_stream[i::self.r])
         return enc_extracted
 
     def flatten(self, enc_extracted):
@@ -82,17 +81,4 @@ class TurboEncoder(object):
         for i in range(len(enc_extracted[0])):
             for j in range(self.r):
                 enc_stream.append(enc_extracted[j][i])
-
-        # z = zip(enc_stream)
-        # list(x for sublist in z for x in sublist)
-        return enc_stream
-
-    def flatten_parity(self, enc_extracted):
-        enc_stream = []
-        for i in range(len(enc_extracted[0])):
-            for j in range(self.r):
-                enc_stream.append(enc_extracted[j + 1][i])
-
-        # z = zip(enc_stream)
-        # list(x for sublist in z for x in sublist)
         return enc_stream

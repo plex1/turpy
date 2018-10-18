@@ -16,7 +16,7 @@ from ConvSISO import ConvSISO
 
 def main(n_data=5000, verbose=True):
     # parameters
-    EbNodB_range = np.arange(-4, 8, 2)
+    EbNodB_range = np.arange(-4, 10, 2)
     code_choice = 2
     gp_list = {  # definition of generator polynomals
         1: [[1, 0, 1], [1, 1, 1]],  # constraint length K=3, Rate=1/2

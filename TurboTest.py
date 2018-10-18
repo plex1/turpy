@@ -15,10 +15,10 @@ from Interleaver import Interleaver
 from TurboDecoder import TurboDecoder
 
 
-def main(n_data=512, n_blocks=2, verbose=True):
+def main(n_data=512, n_blocks=10, verbose=True):
 
     # parameters
-    EbNodB_range = np.arange(-0.5, 3, 0.5)
+    EbNodB_range = [-1, 0, 0.8, 1, 1.2, 2, 3]
     gp_forward = np.array([[1, 1, 0, 1]])
     gp_feedback = np.array([0, 0, 1, 1])
     n_zp = 3  # zero padding
@@ -70,7 +70,7 @@ def main(n_data=512, n_blocks=2, verbose=True):
                 print('errors per iteration: ' + str(errors))
             errors_acc = list(np.array(errors_acc) + np.array(errors))
 
-            if errors_acc[3] > n_data:  # simulation stopping criteria
+            if errors_acc[3] > 2*n_data:  # simulation stopping criteria
                 break
 
         error_vec.append(errors_acc)
@@ -82,9 +82,9 @@ def main(n_data=512, n_blocks=2, verbose=True):
         print("Simulated errors: " + str(error_vec_t))
     for i in range(0, td.iterations):
         ber = list(np.array(error_vec_t[i]) / (np.array(blocks_vec) * n_data))
-        plt.plot(EbNodB_range, ber)
-    ber_uncoded = norm.sf(np.sqrt(2 * np.array(10 ** (EbNodB_range / 10))))
-    plt.plot(EbNodB_range, ber_uncoded, ':')
+        plt.plot(EbNodB_range, ber, 'x-')
+    ber_uncoded = norm.sf(np.sqrt(2 * np.array(10 ** (np.array(EbNodB_range) / 10))))
+    plt.plot(EbNodB_range, ber_uncoded, 'k:')
     plt.xscale('linear')
     plt.yscale('log', nonposy='mask')
     plt.xlabel('EbNo(dB)')
