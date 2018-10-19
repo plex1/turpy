@@ -49,7 +49,7 @@ def main(n_data=5000, verbose=True):
         # additive noise
         EbNo = 10.0 ** (EbNodB_range[n] / 10.0)
         noise_std = np.sqrt(trellis.r) / np.sqrt(2 * EbNo)
-        encoded_rx = 2 * encoded - 1 + noise_std * randn(len(encoded))
+        encoded_rx = 2 * np.array(encoded) - 1 + noise_std * randn(len(encoded))
 
         # viterbi decoding
         if use_viterbi:

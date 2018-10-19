@@ -43,7 +43,7 @@ class ConvEncoder(object):
         for i in range(len(data)):
             encoded = np.concatenate((encoded.astype(int), self.step(data[i])))
 
-        return encoded
+        return list(encoded)
 
 
 class TurboEncoder(object):
@@ -56,17 +56,16 @@ class TurboEncoder(object):
 
     def encode(self, data, K=0):
 
-        self.cvet = ConvEncoder(self.trellises[1])  # trellis with maximum K
-
         encoded = []
         for index, trellis in enumerate(self.trellises):
+            # for each trellis generate an encoded stream
             self.cve = ConvEncoder(trellis)
             self.cve.reset()
             datam = data
-            if index > 1:
+            if index > 1: # no interleaving for stream 0 and 1 (systematic and parity bit 1)
                 datam = self.interleaver.interleave(datam)
-            datam = self.cvet.zero_padding(datam, K)
-            encoded_conv = self.cve.encode(datam, False)
+            datam = self.cve.zero_padding(datam, K)      #zero padding
+            encoded_conv = self.cve.encode(datam, False)  #encoding
             encoded.append(encoded_conv)
         return encoded
 

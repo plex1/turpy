@@ -19,8 +19,8 @@ def main(n_data=512, n_blocks=10, verbose=True):
 
     # parameters
     EbNodB_range = [-1, 0, 0.8, 1, 1.2, 1.3]
-    gp_forward = np.array([[1, 1, 0, 1]])
-    gp_feedback = np.array([0, 0, 1, 1])
+    gp_forward = [[1, 1, 0, 1]]
+    gp_feedback = [0, 0, 1, 1]
     n_zp = 3  # zero padding
 
     # create interleaver instances
@@ -29,7 +29,7 @@ def main(n_data=512, n_blocks=10, verbose=True):
 
     # create trellises, encoders and decoders instances
     trellis_p = Trellis(gp_forward, gp_feedback)
-    trellis_identity = Trellis(np.array([[1]]))
+    trellis_identity = Trellis([[1]])
     csiso = ConvSISO(trellis_p)
     trellises = [trellis_identity, trellis_p, trellis_p]
     turboenc = TurboEncoder(trellises, il)
