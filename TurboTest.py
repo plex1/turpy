@@ -18,7 +18,7 @@ from TurboDecoder import TurboDecoder
 def main(n_data=512, n_blocks=10, verbose=True):
 
     # parameters
-    EbNodB_range = [-1, 0, 0.8, 1, 1.2, 2, 3]
+    EbNodB_range = [-1, 0, 0.8, 1, 1.2, 1.3]
     gp_forward = np.array([[1, 1, 0, 1]])
     gp_feedback = np.array([0, 0, 1, 1])
     n_zp = 3  # zero padding
@@ -70,7 +70,7 @@ def main(n_data=512, n_blocks=10, verbose=True):
                 print('errors per iteration: ' + str(errors))
             errors_acc = list(np.array(errors_acc) + np.array(errors))
 
-            if errors_acc[3] > 2*n_data:  # simulation stopping criteria
+            if errors_acc[3] > 3*n_data:  # simulation stopping criteria
                 break
 
         error_vec.append(errors_acc)

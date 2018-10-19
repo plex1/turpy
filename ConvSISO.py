@@ -28,16 +28,16 @@ class ConvSISO(object):
             sm_vec_new = []
             llr = yp[trellis.r * i:trellis.r * (i + 1)]
             for j in range(trellis.Ns):  # for each state
-                branches = trellis.get_prev_branches(j)
+                branches = trellis.get_prev_branches_pc[j]
                 sums = []
                 for k in range(2):  # for each branch
                     branch_metric = 0
                     for l in range(trellis.r):  # for each encoded bit
-                        if trellis.get_enc_bits(branches[k])[l] == 1:
+                        if trellis.get_enc_bits_pc[branches[k]][l] == 1:
                             branch_metric += llr[l]
-                    if trellis.get_dat(branches[k]):
+                    if trellis.get_dat_pc[branches[k]]:
                         branch_metric += ys[i] + la[i]
-                    sums.append(sm_vec[trellis.get_prev_state(branches[k])] + branch_metric)  # add
+                    sums.append(sm_vec[trellis.get_prev_state_pc[branches[k]]] + branch_metric)  # add
                 decision = int(sums[1] > sums[0])  # compare
                 sm_vec_new.append(sums[decision])  # select
             sm_vec = list(sm_vec_new)
@@ -54,16 +54,16 @@ class ConvSISO(object):
             llr = yp[trellis.r * i:trellis.r * (i + 1)]
             max_branch = [-10, -10]
             for j in range(trellis.Ns):  # for each state
-                branches = trellis.get_next_branches(j)
+                branches = trellis.get_next_branches_pc[j]
                 sums = []
                 for k in range(2):  # for each branch
                     branch_metric = 0
                     for l in range(trellis.r):  # for each encoded bit
-                        if trellis.get_enc_bits(branches[k])[l] == 1:
+                        if trellis.get_enc_bits_pc[branches[k]][l] == 1:
                             branch_metric += llr[l]
-                    if trellis.get_dat(branches[k]):
+                    if trellis.get_dat_pc[branches[k]]:
                         branch_metric += ys[i] + la[i]
-                    branch_sum = sm_vec[trellis.get_next_state(branches[k])] + branch_metric  # add (gamma)
+                    branch_sum = sm_vec[trellis.get_next_state_pc[branches[k]]] + branch_metric  # add (gamma)
                     sums.append(branch_sum)
 
                     if i == 0:
@@ -72,7 +72,7 @@ class ConvSISO(object):
                         post_branch_metric = branch_sum + sm_forward[i - 1][j]
 
                     # soft output calcualtion
-                    out = trellis.get_dat(branches[k])
+                    out = trellis.get_dat_pc[branches[k]]
                     if post_branch_metric > max_branch[out]:
                         max_branch[out] = post_branch_metric
 
