@@ -23,7 +23,7 @@ class TurboDecoder(object):
         # initialize variables
         Lext = [0] * n_data
         ext_scale = 11/16
-        ys_i = ys[0:-self.n_zp]  # systematic bits withouth zero padding (interleaved bits)
+        ys_i = ys[0:-self.n_zp]  # systematic bits without zero padding (interleaved bits)
         zp = [-10] * self.n_zp  # zero padding (the trellis is not terminated to zero but zero padded)
         il = self.il
 
@@ -42,7 +42,7 @@ class TurboDecoder(object):
             # hard output
             data_r_sisop2_th = il.deinterleave((np.array(data_r_sisop2) > 0).astype(int))  # threshold
 
-            if len(data_u) > 0:  # ber calcuation
+            if len(data_u) > 0:  # ber calculation
                 data_r_sisop1_th = (np.array(data_r_sisop1) > 0).astype(int)  # threshold
                 errors_p2 = (np.array(data_u) != data_r_sisop2_th).sum()
                 errors_iter[i] = errors_p2

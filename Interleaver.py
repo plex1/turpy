@@ -37,6 +37,11 @@ class Interleaver(object):
         self.perm = [((2 ** k - 1) * x + 2 ** (k + 1) * x ** 2) % N for x in self.perm]
         self._gen_perm_inv()
 
+    def gen_qpp_perm_poly(self, N, k1, k2):
+        self.perm = list(range(N))
+        self.perm = [(k1 * x + k2 * x ** 2) % N for x in self.perm]
+        self._gen_perm_inv()
+
     def _gen_perm_inv(self):
         self.perm_inv = [0] * len(self.perm)
         for i in range(len(self.perm)):

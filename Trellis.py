@@ -86,7 +86,7 @@ class Trellis(object):
         self.get_enc_bits_pc = [self.get_enc_bits(x) for x in range(self.Nb)]
         self.get_next_state_pc = [self.get_next_state(x) for x in range(self.Nb)]
         self.get_prev_state_pc = [self.get_prev_state(x) for x in range(self.Nb)]
-        self.get_next_branches_pc = [self.get_next_branches(x) for x in range(self.Nb)]
-        self.get_prev_branches_pc = [self.get_prev_branches(x) for x in range(self.Nb)]
+        self.get_next_branches_pc = [self.get_next_branches(x) for x in range(self.Ns)]
+        self.get_prev_branches_pc = [self.get_prev_branches(x) for x in range(self.Ns)]
 
         self.optimize = True
