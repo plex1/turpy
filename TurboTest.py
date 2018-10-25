@@ -10,7 +10,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 from Trellis import Trellis
 from ConvEncoder import TurboEncoder
-from ConvSISO import ConvSISO
+from SisoDecoder import SisoDecoder
 from Interleaver import Interleaver
 from TurboDecoder import TurboDecoder
 
@@ -30,7 +30,7 @@ def main(n_data=512, n_blocks=10, verbose=True):
     # create trellises, encoders and decoders instances
     trellis_p = Trellis(gp_forward, gp_feedback)
     trellis_identity = Trellis([[1]])
-    csiso = ConvSISO(trellis_p)
+    csiso = SisoDecoder(trellis_p)
     trellises = [trellis_identity, trellis_p, trellis_p]
     turboenc = TurboEncoder(trellises, il)
     td = TurboDecoder(il, csiso, csiso)

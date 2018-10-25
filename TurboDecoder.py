@@ -19,8 +19,8 @@ class TurboDecoder(object):
 
     def decode(self, ys, yp1, yp2, data_u=[]):
 
-        n_data = len(ys) - self.n_zp
         # initialize variables
+        n_data = len(ys)
         Lext = [0] * n_data
         ext_scale = 11/16
         ys_i = ys[0:-self.n_zp]  # systematic bits without zero padding (interleaved bits)
@@ -31,23 +31,35 @@ class TurboDecoder(object):
 
         for i in range(self.iterations):
 
-            # first half iteration
-            data_r_sisop1 = self.convsiso_p1.decode(ys, yp1, il.deinterleave(Lext) + zp, n_data)
-            Lext = list(ext_scale * (np.array(data_r_sisop1) - np.array(il.deinterleave(Lext)) - np.array(ys_i)))
+            # first half iteration ------------------------------------------------
 
-            # second half iteration
-            data_r_sisop2 = self.convsiso_p2.decode(il.interleave(ys_i) + zp, yp2, il.interleave(Lext) + zp, n_data)
-            Lext = list(ext_scale * (np.array(data_r_sisop2) - np.array(il.interleave(Lext)) - il.interleave(np.array(ys_i))))
+            # prepare apriori information
+            input_u = [x + y for x, y in zip(ys, il.deinterleave(Lext)+zp)]
+
+            # decode
+            dec1, cout = self.convsiso_p1.decode(input_u , yp1, n_data)
+
+            #  calculate extrinsic information
+            Lext = list(ext_scale * (np.array(dec1[0:-self.n_zp]) - np.array(il.deinterleave(Lext)) - np.array(ys_i)))
+
+            # second half iteration ------------------------------------------------
+
+            # prepare apriori information
+            input_u =  [x + y for x, y in zip(il.interleave(ys_i) + zp, il.interleave(Lext)+zp)]
+
+            # decode
+            dec2, cout = self.convsiso_p2.decode(input_u, yp2, n_data)
+
+            #  calculate extrinsic information
+            Lext = list(ext_scale * (np.array(dec2[0:-self.n_zp]) - np.array(il.interleave(Lext)) - il.interleave(np.array(ys_i))))
 
             # hard output
-            data_r_sisop2_th = il.deinterleave((np.array(data_r_sisop2) > 0).astype(int))  # threshold
+            dec_out = il.deinterleave((np.array(dec2) > 0).astype(int))  # threshold
 
             if len(data_u) > 0:  # ber calculation
-                data_r_sisop1_th = (np.array(data_r_sisop1) > 0).astype(int)  # threshold
-                errors_p2 = (np.array(data_u) != data_r_sisop2_th).sum()
-                errors_iter[i] = errors_p2
+                errors = (np.array(data_u) != dec_out).sum()
+                errors_iter[i] = errors
+                if errors == 0:  # stopping criteria
+                    return (dec_out, errors_iter)
 
-                if errors_p2 == 0:  # stopping criteria
-                    return (data_r_sisop2_th, errors_iter)
-
-        return (data_r_sisop2_th, errors_iter)
+        return (dec_out, errors_iter)

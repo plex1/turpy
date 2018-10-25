@@ -16,6 +16,7 @@ class Trellis(object):
         self.Ns = 2 ** (self.K - 1)  # number of states
         self.Nb = 2 ** self.K  # number of branches
         self.r = self.get_rate()
+        self.wb = 1 #1 data bit per stage
         self.gen_feedback = np.array(gen_feedback)
         self.rsc = len(gen_feedback) > 0
         self.get_dat_precalc = []
@@ -62,11 +63,11 @@ class Trellis(object):
     def get_dat(self, branch):
         if not self.optimize:
             if not self.rsc:
-                return branch & 1
+                return [branch & 1]
             else:
-                return np.mod(np.matmul(self.gen_feedback, (self._dec2bin(branch, self.K))) + (branch & 1), 2)
+                return [np.mod(np.matmul(self.gen_feedback, (self._dec2bin(branch, self.K))) + (branch & 1), 2)]
         else:
-            return self.get_dat_pc[branch]
+            return [self.get_dat_pc[branch]]
 
     def _dec2bin(self, val, k):
         bin_val = []

@@ -58,7 +58,7 @@ def main(n_data=5000, verbose=True):
             convsiso = ConvSISO(trellis)
             convsiso.backward_init = True
             n_stages = n_data + trellis.K - 1
-            data_r = convsiso.decode([0] * n_stages, encoded_rx, [0] * n_stages, n_data)
+            data_r, c = convsiso.decode([0] * n_stages, encoded_rx, n_data)
             data_r = (np.array(data_r) > 0).astype(int)
 
         # ber calculation
