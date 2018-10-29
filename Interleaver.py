@@ -14,6 +14,9 @@ class Interleaver(object):
         self.perm = []
         self.perm_inv = []
 
+    def get_length(self):
+        return len(self.perm)
+
     def set_permutation(self, perm):
         self.perm = perm
 
@@ -46,6 +49,7 @@ class Interleaver(object):
         self.perm_inv = [0] * len(self.perm)
         for i in range(len(self.perm)):
             self.perm_inv[self.perm[i]] = i
+
     def interleave(self, data):
         return [data[index] for index in self.perm]
 

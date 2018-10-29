@@ -17,7 +17,7 @@ class TurboDecoder(object):
         self.n_zp = 3  # zero padding
         self.iterations = 6
 
-    def decode(self, ys, yp1, yp2, data_u=[]):
+    def decode(self, ys, yp1, yp2, expected_data=[]):
 
         # initialize variables
         n_data = len(ys)
@@ -56,8 +56,8 @@ class TurboDecoder(object):
             # hard output
             dec_out = il.deinterleave((np.array(dec2) > 0).astype(int))  # threshold
 
-            if len(data_u) > 0:  # ber calculation
-                errors = (np.array(data_u) != dec_out).sum()
+            if len(expected_data) > 0:  # ber calculation
+                errors = (np.array(expected_data) != dec_out).sum()
                 errors_iter[i] = errors
                 if errors == 0:  # stopping criteria
                     return (dec_out, errors_iter)

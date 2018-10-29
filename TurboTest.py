@@ -31,6 +31,7 @@ def main(n_data=512, n_blocks=10, verbose=True):
     trellis_p = Trellis(gp_forward, gp_feedback)
     trellis_identity = Trellis([[1]])
     csiso = SisoDecoder(trellis_p)
+    csiso.backward_init = False
     trellises = [trellis_identity, trellis_p, trellis_p]
     turboenc = TurboEncoder(trellises, il)
     td = TurboDecoder(il, csiso, csiso)

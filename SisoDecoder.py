@@ -13,22 +13,22 @@ class SisoDecoder(object):
         self.trellis = trellis
         self.remove_tail = True
         self.forward_init = True
-        self.backward_init = False
+        self.backward_init = True
 
     def decode(self, input_u, input_c, n_data):
 
-        minf = -10
+        minus_inf = -10
         trellis = self.trellis
         n_stages = int(n_data / self.trellis.wb)
-        sm_vec_init = [0] + [minf * self.forward_init] * (trellis.Ns - 1)  # init state metric vector
+        sm_vec_init = [0] + [minus_inf * self.forward_init] * (trellis.Ns - 1)  # init state metric vector
 
         # forward (alpha)
         sm_vec = sm_vec_init
         sm_forward = []
         for i in range(0, n_stages):  # for each stage
             sm_vec_new = []
-            llr = input_c[trellis.r * i:trellis.r * (i + 1)]
-            ysp = input_u[trellis.wb * i: trellis.wb * (i + 1)]
+            cin = input_c[trellis.r * i:trellis.r * (i + 1)]
+            uin = input_u[trellis.wb * i: trellis.wb * (i + 1)]
             for j in range(trellis.Ns):  # for each state
                 branches = trellis.get_prev_branches_pc[j]
                 branch_sums = []
@@ -36,26 +36,25 @@ class SisoDecoder(object):
                     branch_metric = 0
                     for l in range(trellis.r):  # for each encoded bit
                         if trellis.get_enc_bits_pc[branches[k]][l] == 1:
-                            branch_metric += llr[l]
+                            branch_metric += cin[l]
                     for l in range(trellis.wb):  # for each data bit
                         if trellis.get_dat_pc[branches[k]][l]:
-                            branch_metric += ysp[l]
+                            branch_metric += uin[l]
                     branch_sums.append(sm_vec[trellis.get_prev_state_pc[branches[k]]] + branch_metric)  # add (gamma)
                 sm_vec_new.append(max(branch_sums))  # compare and select
             sm_vec = list(sm_vec_new)
             sm_forward.append(sm_vec)
 
         # backward (beta)
-        sm_backward = []
         output_u = []
         output_c = []
-        sm_vec = [0] + [minf * self.backward_init] * (trellis.Ns - 1)  # init state metric vector
+        sm_vec = [0] + [minus_inf * self.backward_init] * (trellis.Ns - 1)  # init state metric vector
         for i in reversed(range(0, n_stages)):  # for each stage
             sm_vec_new = []
-            llr = input_c[trellis.r * i:trellis.r * (i + 1)]
-            ysp = input_u[trellis.wb * i: trellis.wb * (i + 1)]
-            max_branch = [[minf, minf] for i in range(trellis.wb)]
-            max_branch_enc = [[minf, minf] for i in range(trellis.r)]
+            cin = input_c[trellis.r * i:trellis.r * (i + 1)]
+            uin = input_u[trellis.wb * i: trellis.wb * (i + 1)]
+            max_branch_dat = [[minus_inf, minus_inf] for i in range(trellis.wb)]
+            max_branch_enc = [[minus_inf, minus_inf] for i in range(trellis.r)]
             for j in range(trellis.Ns):  # for each state
                 branches = trellis.get_next_branches_pc[j]
                 branch_sums = []
@@ -63,11 +62,11 @@ class SisoDecoder(object):
                     branch_metric = 0
                     for l in range(trellis.r):  # for each encoded bit
                         if trellis.get_enc_bits_pc[branches[k]][l] == 1:
-                            branch_metric += llr[l]
+                            branch_metric += cin[l]
                     for l in range(trellis.wb):  # for each data bit
                         if trellis.get_dat_pc[branches[k]][l]:
-                            branch_metric += ysp[l]
-                    branch_sum = sm_vec[trellis.get_next_state_pc[branches[k]]] + branch_metric # add (gamma)
+                            branch_metric += uin[l]
+                    branch_sum = sm_vec[trellis.get_next_state_pc[branches[k]]] + branch_metric  # add (gamma)
                     branch_sums.append(branch_sum)
 
                     # add the state metric from the forward propagation -> total = alpha + gamma + beta
@@ -83,20 +82,20 @@ class SisoDecoder(object):
                             max_branch_enc[n][enc[n]] = total_metric
 
                     # soft data output calculation
-                    out = trellis.get_dat_pc[branches[k]]
+                    dat = trellis.get_dat_pc[branches[k]]
                     for n in range(trellis.wb):
-                        if total_metric > max_branch[n][out[n]]:
-                            max_branch[n][out[n]] = total_metric
+                        if total_metric > max_branch_dat[n][dat[n]]:
+                            max_branch_dat[n][dat[n]] = total_metric
 
                 sm_vec_new.append(max(branch_sums))  # compare and select
 
             sm_vec = list(sm_vec_new)
-            sm_backward.insert(0, sm_vec)
+
             if i < n_data or not self.remove_tail:  # soft output
                 for n in reversed(range(trellis.wb)):
-                    output_u.insert(0, max_branch[n][1] - max_branch[n][0])
+                    output_u.insert(0, max_branch_dat[n][1] - max_branch_dat[n][0])
 
-            for n in reversed(range(trellis.r)): # soft encoded output
+            for n in reversed(range(trellis.r)):  # soft encoded output
                 output_c.insert(0, max_branch_enc[n][1] - max_branch_enc[n][0])
 
-        return (output_u, output_c)
+        return output_u, output_c
