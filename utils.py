@@ -1,3 +1,9 @@
+#! /usr/bin/env python
+# title           : utils.py
+# description     : This is a file for small utility functions used in this package
+# author          : Felix Arnold
+# python_version  : 3.5.2
+
 from itertools import islice
 
 
