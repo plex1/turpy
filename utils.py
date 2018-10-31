@@ -9,6 +9,18 @@ def dec2bin(val, k):
     return bin_val
 
 
+def bin2dec(bin_val):
+    n = len(bin_val)
+    int_val = 0
+    for j in range(n):
+        int_val += bin_val[j] * 2 ** j
+    return int_val
+
+
+def get_bit(v, n):
+    return int((v & (2 ** n)) > 0)
+
+
 def grouped(seq, n):
     it = iter(seq)
     while True:
@@ -17,14 +29,6 @@ def grouped(seq, n):
             # StopIteration
             return
         yield chunk
-
-
-def bin2dec(bin_val):
-    n = len(bin_val)
-    int_val = 0
-    for j in range(n):
-        int_val += bin_val[j] * 2 ** j
-    return int_val
 
 
 flatten = lambda l: (item for sublist in l for item in sublist)

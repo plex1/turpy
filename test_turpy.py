@@ -248,46 +248,47 @@ def test_conv_enc():
 
 
 def test_conftrellisdef():
-    g = [[1, 0, 1], [1, 1, 0]]
-    ctd = ConvTrellisDef(g)
-    rate = ctd.get_rate()
-    assert 2 == rate
-
     # non recursive code
     g = [[1, 0, 0], [1, 1, 1]]
     ctd = ConvTrellisDef(g)
+
+    rate = ctd.get_rate()
+    assert 2 == rate
 
     # test next branches
     b = ctd.get_next_branches(0)
     assert 2 == len(b)
     assert 0 == b[0]
-    assert 1 == b[1]
+    assert 4 == b[1]
 
     b = ctd.get_next_branches(1)
     assert 2 == len(b)
-    assert 2 == b[0]
-    assert 3 == b[1]
+    assert 1 == b[0]
+    assert 5 == b[1]
 
     # test next state
     s = ctd.get_next_state(4)
-    assert 0 == s
+    assert 2 == s
 
     s = ctd.get_next_state(2)
-    assert 2 == s
+    assert 1 == s
+
+    s = ctd.get_next_state(1)
+    assert 0 == s
 
     # encoded bits
     e = ctd.get_enc_bits(3)
-    assert [1, 0] == e
+    assert [0, 0] == e
 
     e = ctd.get_enc_bits(4)
-    assert [0, 1] == e
+    assert [1, 1] == e
 
     # data bits
     d = ctd.get_dat(1)
-    assert [1] == d
+    assert [0] == d
 
     d = ctd.get_dat(6)
-    assert [0] == d
+    assert [1] == d
 
     # -----------------------------
     # recursive code
@@ -302,7 +303,7 @@ def test_conftrellisdef():
     d = ctd.get_dat(4)
     assert [1] == d
 
-    d = ctd.get_dat(2)
+    d = ctd.get_dat(5)
     assert [0] == d
 
     d = ctd.get_dat(7)
@@ -310,46 +311,47 @@ def test_conftrellisdef():
 
 
 def test_trellis():
-    g = [[1, 0, 1], [1, 1, 0]]
-    ct = Trellis(ConvTrellisDef(g))
-    rate = ct.get_rate()
-    assert 2 == rate
-
     # non recursive code
     g = [[1, 0, 0], [1, 1, 1]]
     ct = Trellis(ConvTrellisDef(g))
+
+    rate = ct.get_rate()
+    assert 2 == rate
 
     # test next branches
     b = ct.get_next_branches_pc[0]
     assert 2 == len(b)
     assert 0 == b[0]
-    assert 1 == b[1]
+    assert 4 == b[1]
 
     b = ct.get_next_branches_pc[1]
     assert 2 == len(b)
-    assert 2 == b[0]
-    assert 3 == b[1]
+    assert 1 == b[0]
+    assert 5 == b[1]
 
     # test next state
     s = ct.get_next_state_pc[4]
-    assert 0 == s
+    assert 2 == s
 
     s = ct.get_next_state_pc[2]
-    assert 2 == s
+    assert 1 == s
+
+    s = ct.get_next_state_pc[1]
+    assert 0 == s
 
     # encoded bits
     e = ct.get_enc_bits_pc[3]
-    assert [1, 0] == e
+    assert [0, 0] == e
 
     e = ct.get_enc_bits_pc[4]
-    assert [0, 1] == e
+    assert [1, 1] == e
 
     # data bits
     d = ct.get_dat_pc[1]
-    assert [1] == d
+    assert [0] == d
 
     d = ct.get_dat_pc[6]
-    assert [0] == d
+    assert [1] == d
 
     # -----------------------------
     # recursive code
@@ -364,12 +366,8 @@ def test_trellis():
     d = ct.get_dat_pc[4]
     assert [1] == d
 
-    d = ct.get_dat_pc[2]
+    d = ct.get_dat_pc[5]
     assert [0] == d
 
     d = ct.get_dat_pc[7]
     assert [0] == d
-
-    s = 2
-    b = ct.get_next_branches_pc[s]
-    assert 4 == b[1]
