@@ -5,6 +5,7 @@
 # python_version  : 3.5.2
 
 import numpy as np
+import utils
 
 
 class ConvEncoder(object):
@@ -17,9 +18,10 @@ class ConvEncoder(object):
         self.state = 0
 
     def step(self, data):
-        branch_taken = self.trellis.get_next_branch(self.state, data)
-        out = self.trellis.get_enc_bits(branch_taken)
-        self.state = self.trellis.get_next_state(branch_taken)
+        branch_taken = self.trellis.get_next_branches_pc[self.state][data]
+        out = self.trellis.get_enc_bits_pc[branch_taken]
+        self.state = self.trellis.get_next_state_pc[branch_taken]
+        out = np.array(out)
         return out
 
     def get_state(self):
@@ -28,8 +30,11 @@ class ConvEncoder(object):
     def zero_padding(self, data, k=-1):
         # add k-1 zero termination bits
         if k == -1:
-            k = self.trellis.K - 1
+            k = self.trellis.tdef.K - 1
         return data + [0] * k
+
+    def remove_zero_termination(self, u):
+        return u[0:-(self.trellis.tdef.K - 1)]
 
     def encode(self, data, zero_termination=True):
 
@@ -40,8 +45,10 @@ class ConvEncoder(object):
 
         # encoding
         encoded = np.array([])
-        for i in range(len(data)):
-            encoded = np.concatenate((encoded.astype(int), self.step(data[i])))
+        for i in range(int(len(data) / self.trellis.wu)):
+            dat = data[self.trellis.wu * i: self.trellis.wu * (i + 1)]
+            dat_int = utils.bin2dec(dat)
+            encoded = np.concatenate((encoded.astype(int), self.step(dat_int)))
 
         return list(encoded)
 
@@ -53,8 +60,9 @@ class TurboEncoder(object):
         self.trellises = trellises
         self.interleaver = interleaver
         self.r = 3
+        self.n_zp = 4  # zero padding
 
-    def encode(self, data, K=0):
+    def encode(self, data):
 
         encoded = []
         for index, trellis in enumerate(self.trellises):
@@ -62,10 +70,10 @@ class TurboEncoder(object):
             self.cve = ConvEncoder(trellis)
             self.cve.reset()
             datam = data
-            if index > 1: # no interleaving for stream 0 and 1 (systematic and parity bit 1)
+            if index > 1:  # no interleaving for stream 0 and 1 (systematic and parity bit 1)
                 datam = self.interleaver.interleave(datam)
-            datam = self.cve.zero_padding(datam, K)      #zero padding
-            encoded_conv = self.cve.encode(datam, False)  #encoding
+            datam = self.cve.zero_padding(datam, self.n_zp)  # zero padding
+            encoded_conv = self.cve.encode(datam, False)  # encoding
             encoded.append(encoded_conv)
         return encoded
 

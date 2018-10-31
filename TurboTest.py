@@ -9,27 +9,26 @@ from numpy.random import rand, randn
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 from Trellis import Trellis
+from ConvTrellisDef import ConvTrellisDef
 from ConvEncoder import TurboEncoder
 from SisoDecoder import SisoDecoder
 from Interleaver import Interleaver
 from TurboDecoder import TurboDecoder
 
 
-def main(n_data=512, n_blocks=10, verbose=True):
-
+def main(n_data=512, n_blocks=10, verbose=True, do_plot=True):
     # parameters
     EbNodB_range = [-1, 0, 0.8, 1, 1.2, 1.3]
     gp_forward = [[1, 1, 0, 1]]
     gp_feedback = [0, 0, 1, 1]
-    n_zp = 3  # zero padding
 
     # create interleaver instances
     il = Interleaver()
     il.gen_qpp_perm(n_data)
 
     # create trellises, encoders and decoders instances
-    trellis_p = Trellis(gp_forward, gp_feedback)
-    trellis_identity = Trellis([[1]])
+    trellis_p = Trellis(ConvTrellisDef(gp_forward, gp_feedback))
+    trellis_identity = Trellis(ConvTrellisDef([[1]]))
     csiso = SisoDecoder(trellis_p)
     csiso.backward_init = False
     trellises = [trellis_identity, trellis_p, trellis_p]
@@ -42,7 +41,7 @@ def main(n_data=512, n_blocks=10, verbose=True):
     for EbNodB in EbNodB_range:
 
         if verbose:
-            print("----- Simulating EbN0 = " + str(EbNodB)+ " -----")
+            print("----- Simulating EbN0 = " + str(EbNodB) + " -----")
 
         # loop over several code blocks
         errors_acc = [0] * td.iterations
@@ -55,7 +54,7 @@ def main(n_data=512, n_blocks=10, verbose=True):
             data_u = list((rand(n_data) >= 0.5).astype(int))
 
             # turbo encoding
-            encoded_streams = turboenc.encode(data_u, n_zp)
+            encoded_streams = turboenc.encode(data_u)
             encoded = np.array(turboenc.flatten(encoded_streams))
 
             # additive noise
@@ -71,7 +70,7 @@ def main(n_data=512, n_blocks=10, verbose=True):
                 print('errors per iteration: ' + str(errors))
             errors_acc = list(np.array(errors_acc) + np.array(errors))
 
-            if errors_acc[3] > 3*n_data:  # simulation stopping criteria
+            if errors_acc[3] > 3 * n_data:  # simulation stopping criteria
                 break
 
         error_vec.append(errors_acc)
@@ -81,18 +80,19 @@ def main(n_data=512, n_blocks=10, verbose=True):
     error_vec_t = list(np.transpose(np.array(error_vec)))
     if verbose:
         print("Simulated errors: " + str(error_vec_t))
-    for i in range(0, td.iterations):
-        ber = list(np.array(error_vec_t[i]) / (np.array(blocks_vec) * n_data))
-        plt.plot(EbNodB_range, ber, 'x-')
-    ber_uncoded = norm.sf(np.sqrt(2 * np.array(10 ** (np.array(EbNodB_range) / 10))))
-    plt.plot(EbNodB_range, ber_uncoded, 'k:')
-    plt.xscale('linear')
-    plt.yscale('log', nonposy='mask')
-    plt.xlabel('EbNo(dB)')
-    plt.ylabel('BER')
-    plt.grid(True, which="both")
-    plt.title('BPSK modulation, Turbo Code, max log MAP decoding')
-    plt.show()
+    if do_plot:
+        for i in range(0, td.iterations):
+            ber = list(np.array(error_vec_t[i]) / (np.array(blocks_vec) * n_data))
+            plt.plot(EbNodB_range, ber, 'x-')
+        ber_uncoded = norm.sf(np.sqrt(2 * np.array(10 ** (np.array(EbNodB_range) / 10))))
+        plt.plot(EbNodB_range, ber_uncoded, 'k:')
+        plt.xscale('linear')
+        plt.yscale('log', nonposy='mask')
+        plt.xlabel('EbNo(dB)')
+        plt.ylabel('BER')
+        plt.grid(True, which="both")
+        plt.title('BPSK modulation, Turbo Code, max log MAP decoding')
+        plt.show()
 
 
 if __name__ == "__main__":
