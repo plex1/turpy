@@ -2,6 +2,4 @@ pytest
 numpy
 scipy
 matplotlib
-itertools
-math
-random
+
