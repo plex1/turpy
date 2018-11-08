@@ -58,7 +58,8 @@ class Trellis(object):
         self.get_next_branches_pc = []
         for b in get_next_branches_pc_unsorted:
             dat_b = [self.get_dat_pc[x] for x in b]
-            b_new = [x for _, x in sorted(zip(dat_b, b))]
+            dat_d = [utils.bin2dec(x) for x in dat_b]
+            b_new = [x for _, x in sorted(zip(dat_d, b))]
             self.get_next_branches_pc.append(b_new)
 
     def pre_calculation(self):

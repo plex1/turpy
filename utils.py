@@ -27,6 +27,11 @@ def get_bit(v, n):
     return int((v & (2 ** n)) > 0)
 
 
+def get_bits(v, start, end):
+    mask = 2 ** (end - start + 1) - 1
+    return (v >> start) & mask
+
+
 def grouped(seq, n):
     it = iter(seq)
     while True:
